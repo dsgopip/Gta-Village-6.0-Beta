@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1b2830">
+<title>VILLAGE LIFE 3D — Prototype</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="loading"><div class="load-title">VILLAGE LIFE 3D</div><div>Загрузка деревни…</div></div>
+<div id="hud">
+  <div class="topline"><div class="brand">VILLAGE LIFE <span>3D</span></div><div id="clock">08:00</div></div>
+  <div id="mission">ЗАДАНИЕ: Осмотрись в деревне</div>
+  <div id="hint">Подойди к машине и нажми «В МАШИНУ»</div>
+  <div id="controls">
+    <div id="walkControls" class="control-layer">
+      <div id="stick" class="stick"><div id="knob"></div></div>
+      <div class="right-buttons">
+        <button id="runBtn" class="round">БЕГ</button>
+        <button id="actionBtn" class="action">ТОЛКНУТЬ</button>
+        <button id="enterBtn" class="action">В МАШИНУ</button>
+      </div>
+    </div>
+    <div id="carControls" class="control-layer hidden">
+      <div id="steerStick" class="stick"><div id="steerKnob"></div></div>
+      <div class="right-buttons driving">
+        <button id="gasBtn" class="pedal">ВПЕРЁД</button>
+        <button id="reverseBtn" class="pedal">НАЗАД</button>
+        <button id="exitBtn" class="action">ВЫЙТИ</button>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-buttons">
+    <button id="cameraBtn">КАМЕРА: 3 ЛИЦО</button>
+    <button id="missionBtn">ЗАДАНИЕ</button>
+  </div>
+  <div id="damageWrap" class="hidden"><span>СОСТОЯНИЕ АВТО</span><div class="bar"><div id="damageBar"></div></div></div>
+  <div id="toast"></div>
+</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
