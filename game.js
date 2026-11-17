@@ -1,10 +1,11 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { TEXTURES } from './textures-inline.js';
 const $=id=>document.getElementById(id),loading=$('loading');
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9fc3d2);scene.fog=new THREE.Fog(0x9fc3d2,65,230);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,420);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;document.body.prepend(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xdceeff,0x665b45,1.35));const sun=new THREE.DirectionalLight(0xffe3bd,2.1);sun.position.set(-45,75,35);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-100;sun.shadow.camera.right=100;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
-const loader=new THREE.TextureLoader();function tex(name,repeat=1){const t=loader.load('./textures/'+name);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeat,repeat);t.colorSpace=THREE.SRGBColorSpace;return t}
+const loader=new THREE.TextureLoader();function tex(name,repeat=1){const t=loader.load(TEXTURES[name]||'');t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeat,repeat);t.colorSpace=THREE.SRGBColorSpace;return t}
 const mats={grass:new THREE.MeshStandardMaterial({map:tex('grass.png',18),roughness:1}),road:new THREE.MeshStandardMaterial({map:tex('asphalt.png',8),roughness:.95}),cream:new THREE.MeshStandardMaterial({map:tex('plaster_cream.png',2),roughness:.92}),white:new THREE.MeshStandardMaterial({map:tex('plaster_white.png',2),roughness:.92}),roof:new THREE.MeshStandardMaterial({map:tex('roof_tiles.png',2),roughness:.9}),wood:new THREE.MeshStandardMaterial({map:tex('wood.png',2),roughness:.95}),concrete:new THREE.MeshStandardMaterial({map:tex('concrete.png',5),roughness:1}),glass:new THREE.MeshStandardMaterial({color:0x294653,roughness:.22,metalness:.25}),black:new THREE.MeshStandardMaterial({color:0x111619,roughness:.4}),tire:new THREE.MeshStandardMaterial({color:0x101214,roughness:.98}),fur:new THREE.MeshStandardMaterial({color:0x777e85,roughness:.95}),skin:new THREE.MeshStandardMaterial({color:0xc99b79}),shirt:new THREE.MeshStandardMaterial({color:0x36546d}),pants:new THREE.MeshStandardMaterial({color:0x30343a}),fabric:[ 'fabric_blue.png','fabric_red.png','fabric_green.png','fabric_yellow.png','fabric_purple.png','fabric_dark.png'].map(n=>new THREE.MeshStandardMaterial({map:tex(n,2),roughness:1})),skins:['skin_warm.png','skin_light.png','skin_deep.png'].map(n=>new THREE.MeshStandardMaterial({map:tex(n,1),roughness:.95})),hair:['hair_dark.png','hair_brown.png','hair_blond.png'].map(n=>new THREE.MeshStandardMaterial({map:tex(n,1),roughness:1})),brick:new THREE.MeshStandardMaterial({map:tex('brick.png',3),roughness:1}),stone:new THREE.MeshStandardMaterial({map:tex('stone_wall.png',3),roughness:1}),roofBlue:new THREE.MeshStandardMaterial({map:tex('roof_blue.png',2),roughness:.9}),roofRed:new THREE.MeshStandardMaterial({map:tex('roof_red.png',2),roughness:.9}),planks:new THREE.MeshStandardMaterial({map:tex('wood_planks.png',3),roughness:1}),sand:new THREE.MeshStandardMaterial({map:tex('sand.png',8),roughness:1}),sidewalk:new THREE.MeshStandardMaterial({map:tex('sidewalk.png',5),roughness:1})};
 const box=(p,x,y,z,sx,sy,sz,m)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;p.add(o);return o};
 const cyl=(p,x,y,z,r,h,m,seg=12)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),m);o.position.set(x,y,z);o.castShadow=true;p.add(o);return o};
@@ -72,6 +73,14 @@ const MAX_SPEED=200/3.6;
 function toast(s){$('toast').textContent=s;$('toast').style.opacity=1;toastTimer=2.1}
 function stick(el,knob,cb){let active=false,pid=null;const moveEv=e=>{const r=el.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,max=r.width*.34,d=Math.hypot(dx,dy),k=d>max?max/d:1;let a=dx*k,b=dy*k;knob.style.transform=`translate(${a}px,${b}px)`;cb(a/max,-b/max)};el.addEventListener('pointerdown',e=>{active=true;pid=e.pointerId;el.setPointerCapture(pid);moveEv(e)});el.addEventListener('pointermove',e=>{if(active&&e.pointerId===pid)moveEv(e)});const end=e=>{if(active&&e.pointerId===pid){active=false;knob.style.transform='';cb(0,0)}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)}
 stick($('stick'),$('knob'),(x,y)=>move={x,y});stick($('steerStick'),$('steerKnob'),x=>steer=x);
+// Independent touch-look: drag only inside the camera pad to rotate the view.
+let cameraYaw=0,cameraPitch=.22,cameraPointer=null,lastTouchX=0,lastTouchY=0;
+const cameraPad=$('cameraTouch');
+cameraPad.addEventListener('pointerdown',e=>{e.preventDefault();cameraPointer=e.pointerId;lastTouchX=e.clientX;lastTouchY=e.clientY;cameraPad.setPointerCapture(e.pointerId)});
+cameraPad.addEventListener('pointermove',e=>{if(cameraPointer!==e.pointerId)return;e.preventDefault();const dx=e.clientX-lastTouchX,dy=e.clientY-lastTouchY;lastTouchX=e.clientX;lastTouchY=e.clientY;cameraYaw-=dx*.008;cameraPitch=THREE.MathUtils.clamp(cameraPitch-dy*.006,-.18,.85)});
+const endCamera=e=>{if(cameraPointer===e.pointerId)cameraPointer=null};
+cameraPad.addEventListener('pointerup',endCamera);cameraPad.addEventListener('pointercancel',endCamera);
+
 function hold(id,set){$(id).addEventListener('pointerdown',e=>{e.preventDefault();set(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$(id).addEventListener(ev,()=>set(false)))}
 hold('runBtn',v=>run=v);hold('gasBtn',v=>gas=v);hold('reverseBtn',v=>reverse=v);
 $('cameraBtn').onclick=()=>{first=!first;$('cameraBtn').textContent='КАМЕРА: '+(first?'1 ЛИЦО':'3 ЛИЦО')};
@@ -89,13 +98,19 @@ $('missionBtn').onclick=()=>{mission=(mission+1)%4;setMission()};function setMis
 function dayNight(dt){time=(time+dt*.035)%24;const h=Math.floor(time),m=Math.floor((time-h)*60);$('clock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');const k=Math.max(0,Math.sin((time-6)/12*Math.PI));sun.intensity=.18+k*2;scene.background.set(0x101a2b).lerp(new THREE.Color(0x9fc3d2),k);scene.fog.color.copy(scene.background);interiorLight.intensity=inside?22:0}
 function update(dt){dayNight(dt);
 for(const n of npcs){if(n.knock>0){n.knock-=dt;n.g.position.x+=(n.g.userData.vx||0)*dt;n.g.position.z+=(n.g.userData.vz||0)*dt;n.g.userData.vx=(n.g.userData.vx||0)*Math.pow(.08,dt);n.g.userData.vz=(n.g.userData.vz||0)*Math.pow(.08,dt);n.g.rotation.z=Math.sin((1.4-n.knock)*8)*.72;n.g.rotation.x=Math.sin((1.4-n.knock)*5)*.2}else{n.g.rotation.z=THREE.MathUtils.damp(n.g.rotation.z,0,5,dt);n.g.rotation.x=THREE.MathUtils.damp(n.g.rotation.x,0,5,dt);n.phase+=dt*.38;n.g.position.x=THREE.MathUtils.damp(n.g.position.x,n.home.x+Math.sin(n.phase)*2.4,2,dt);n.g.position.z=THREE.MathUtils.damp(n.g.position.z,n.home.z+Math.cos(n.phase*.7)*2.2,2,dt);n.g.rotation.y=Math.sin(n.phase)*.5}}
-if(!inCar){ // camera-relative controls, damped acceleration and independent facing
- const yaw=Math.atan2(camera.position.x-player.position.x,camera.position.z-player.position.z);
- const forward=new THREE.Vector3(-Math.sin(yaw),0,Math.cos(yaw));
- const right=new THREE.Vector3(Math.cos(yaw),0,Math.sin(yaw));
+if(!inCar){ // Direct analog movement: up is forward, down is backward; camera look is independent.
+ const forward=new THREE.Vector3(Math.sin(cameraYaw),0,Math.cos(cameraYaw));
+ const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));
  const dir=right.multiplyScalar(move.x).add(forward.multiplyScalar(move.y));
- if(dir.lengthSq()>.02){dir.normalize();const targetYaw=Math.atan2(dir.x,dir.z);player.rotation.y=THREE.MathUtils.dampAngle?THREE.MathUtils.dampAngle(player.rotation.y,targetYaw,12,dt):player.rotation.y+(Math.atan2(Math.sin(targetYaw-player.rotation.y),Math.cos(targetYaw-player.rotation.y)))*Math.min(1,dt*12);const oldPos=player.position.clone();player.position.addScaledVector(dir,(run?7.8:4.6)*dt);
- if(!inside&&obstacles.some(o=>Math.abs(player.position.x-o.x)<o.rx&&Math.abs(player.position.z-o.z)<o.rz))player.position.copy(oldPos)}
+ if(dir.lengthSq()>.02){
+   dir.normalize();
+   const targetYaw=Math.atan2(dir.x,dir.z);
+   const delta=Math.atan2(Math.sin(targetYaw-player.rotation.y),Math.cos(targetYaw-player.rotation.y));
+   player.rotation.y+=delta*Math.min(1,dt*12);
+   const oldPos=player.position.clone();
+   player.position.addScaledVector(dir,(run?7.8:4.6)*dt);
+   if(!inside&&obstacles.some(o=>Math.abs(player.position.x-o.x)<o.rx&&Math.abs(player.position.z-o.z)<o.rz))player.position.copy(oldPos);
+ }
  player.position.x=THREE.MathUtils.clamp(player.position.x,-95,95);player.position.z=THREE.MathUtils.clamp(player.position.z,-140,140);
 }else{
  // Arcade vehicle dynamics: engine force, drag, lateral grip and speed-sensitive steering.
@@ -123,10 +138,20 @@ if(!inCar){ // camera-relative controls, damped acceleration and independent fac
  wheels.forEach((w,i)=>{w.rotation.x+=speed*dt*2.1;if(i<2)w.rotation.y=steer*.24});car.position.y=.025*Math.sin(performance.now()*.018)*Math.min(1,Math.abs(speed)/12);
  $('speedValue').textContent=Math.round(Math.abs(speed)*3.6);$('gear').textContent=speed<-.4?'R':Math.abs(speed)<.4?'N':'D';$('damageBar').style.width=(100-damage)+'%';$('damageBar').style.background=damage>65?'#c85c50':damage>30?'#d6a34d':'#75c995';}
 const target=inCar?car.position:player.position;const follow=target.clone().add(new THREE.Vector3(-1.35,0,1.65));if(cat.position.distanceTo(follow)>.7)cat.position.lerp(follow,Math.min(1,dt*3));cat.rotation.y=Math.atan2(target.x-cat.position.x,target.z-cat.position.z);
-let desired,look;if(inside){desired=player.position.clone().add(new THREE.Vector3(0,3.2,-6));look=player.position.clone().add(new THREE.Vector3(0,1.1,1))}else if(inCar){desired=car.position.clone().add(new THREE.Vector3(0,first?1.7:4.4,first?-.2:-9).applyAxisAngle(new THREE.Vector3(0,1,0),car.rotation.y));look=car.position.clone().add(new THREE.Vector3(0,1,4).applyAxisAngle(new THREE.Vector3(0,1,0),car.rotation.y))}else if(first){desired=player.position.clone().add(new THREE.Vector3(0,2,0));look=desired.clone().add(new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y)).multiplyScalar(5))}else{desired=player.position.clone().add(new THREE.Vector3(0,4.5,-8).applyAxisAngle(new THREE.Vector3(0,1,0),player.rotation.y));look=player.position.clone().add(new THREE.Vector3(0,1.2,0))}
+let desired,look;
+const camTarget=target.clone().add(new THREE.Vector3(0,inCar?1.15:1.25,0));
+if(inside){desired=player.position.clone().add(new THREE.Vector3(Math.sin(cameraYaw)*6,3.2,-Math.cos(cameraYaw)*6));look=camTarget.clone().add(new THREE.Vector3(Math.sin(cameraYaw),0,Math.cos(cameraYaw)).multiplyScalar(4))}
+else if(first){
+ desired=camTarget.clone().add(new THREE.Vector3(0,.48,0));
+ look=desired.clone().add(new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),Math.cos(cameraYaw)*Math.cos(cameraPitch)).multiplyScalar(7));
+}else{
+ const dist=inCar?9:8.5, height=inCar?4.2:4.5;
+ desired=target.clone().add(new THREE.Vector3(Math.sin(cameraYaw)*dist*Math.cos(cameraPitch),height+Math.sin(cameraPitch)*dist,-Math.cos(cameraYaw)*dist*Math.cos(cameraPitch)));
+ look=camTarget.clone().add(new THREE.Vector3(Math.sin(cameraYaw)*2,0,Math.cos(cameraYaw)*2));
+}
 camera.position.lerp(desired,Math.min(1,dt*6));camera.lookAt(look);
 if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)$('toast').style.opacity=0}
 }
 let last=performance.now();function frame(now){const dt=Math.min((now-last)/1000,.035);last=now;update(dt);renderer.render(scene,camera);requestAnimationFrame(frame)}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5))});
-setTimeout(()=>{loading.style.display='none';toast('Версия 5.0: новые текстуры и разнообразные жители!')},1200);requestAnimationFrame(frame);
+setTimeout(()=>{loading.style.display='none';toast('Версия 6.0: новое управление и камера!')},1200);requestAnimationFrame(frame);

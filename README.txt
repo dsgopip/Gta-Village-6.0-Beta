@@ -1,31 +1,24 @@
-VILLAGE LIFE 3D — ПРОТОТИП 3.0
+VILLAGE LIFE 3D — VERSION 6.0
 
-УСТАНОВКА:
-1. Распакуй архив.
-2. Замени файлы проекта в GitHub-репозитории файлами из архива.
-3. Загрузи папку textures целиком со всеми PNG.
-4. GitHub -> Settings -> Pages -> Deploy from a branch -> main -> /(root) -> Save.
-5. Открой HTTPS-сайт в Chrome. Если видна старая версия — обнови страницу.
+UPDATE:
+- Camera has its own touch-look area on the right side of the screen. Drag inside it to rotate the view; it does not move the character or steer the car.
+- Walking joystick is corrected: push up = move forward, down = move backward, left/right = strafe. Direction is relative to the camera.
+- Vehicle steering joystick and separate forward/reverse pedals remain separate.
+- All PNG textures are embedded into textures-inline.js as data URLs. The game no longer requests a /textures folder, so GitHub's folder-upload problem is avoided.
 
-НОВОЕ В 3.0:
-- можно заходить внутрь полицейского участка, медпункта, школы и магазина;
-- простые интерьеры с мебелью;
-- блокировка прохода сквозь здания;
-- улучшенная плавность NPC и упрощённая анимация падения/возврата;
-- столкновения автомобиля со зданиями и дополнительный урон;
-- сохранены расширенная карта, текстуры, кот, день/ночь, спидометр и управление 2.0.
+GITHUB PAGES UPDATE:
+1. Extract this ZIP.
+2. Upload all files inside VILLAGE_LIFE_3D_V3 to the ROOT of your existing repository.
+3. Replace old files when GitHub asks. Upload textures-inline.js too.
+4. You do NOT need to upload the textures folder. The PNGs are embedded in textures-inline.js.
+5. Commit changes, then open the GitHub Pages site and refresh it.
 
-УПРАВЛЕНИЕ:
-Пешком: джойстик, БЕГ, ОСМОТРЕТЬ / ОБЩАТЬСЯ.
-У общественных зданий кнопка открывает интерьер; внутри та же кнопка возвращает наружу.
-У машины: СЕСТЬ В АВТО; джойстик только поворачивает, отдельные ВПЕРЁД/НАЗАД, ВЫЙТИ.
-КАМЕРА переключает первое/третье лицо.
+CONTROLS:
+Walking: joystick up/down = forward/back, left/right = strafe; RUN for faster movement.
+Camera: drag the separate outlined touch area on the right side.
+Car: left joystick = steering; FORWARD and BACK are separate pedals.
+CAMERA button switches first-person/third-person view.
 
-ОГРАНИЧЕНИЯ:
-Это экспериментальный браузерный прототип, не полноценная GTA.
-Падение NPC — упрощённая анимация, не полноценная ragdoll-физика.
-Повреждения пока выражены шкалой и реакцией на столкновения, без детальной деформации панелей.
-Для загрузки Three.js с CDN нужен интернет.
-
-
-V5: добавлены текстуры ткани, кожи, волос, кирпича, камня, деревянных досок, тротуара и разные варианты крыш. NPC получили разные комплекты одежды, оттенки кожи, причёски, обувь, кепки и рюкзаки; количество жителей увеличено до 28.
+NOTES:
+- Three.js is loaded from jsDelivr CDN, so an internet connection is required.
+- This remains a browser-based low-poly prototype, not a full commercial driving simulator.
