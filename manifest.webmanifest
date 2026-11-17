@@ -1,10 +1,8 @@
 {
-  "name": "Village Life 3D V8",
+  "name": "Village Life 3D V10",
   "short_name": "Village Life",
-  "start_url": "./index.html",
-  "display": "standalone",
+  "start_url": "./",
+  "display": "fullscreen",
   "background_color": "#17232a",
-  "theme_color": "#1b2830",
-  "orientation": "landscape",
-  "icons": []
+  "theme_color": "#1b2830"
 }

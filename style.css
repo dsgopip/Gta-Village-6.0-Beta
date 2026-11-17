@@ -52,3 +52,38 @@ button,.stick{touch-action:none}
   #exitBtn{grid-column:1/3}
   .bottom-buttons{bottom:5px!important}
 }
+
+
+/* V10 mobile HUD: compact tactical map stays above driving controls in landscape. */
+.minimap{top:58px;right:10px;width:150px;z-index:7;pointer-events:none}
+#miniMap{width:150px;height:150px;border-radius:14px;background:#142b25}
+.mapLegend{font-size:7px;line-height:1.2;padding:4px 6px;gap:2px 4px}
+#controls{z-index:6;bottom:76px;height:146px}
+#walkControls,#carControls{pointer-events:none}
+#walkControls .stick,#carControls .stick,#walkControls .right-buttons,#carControls .right-buttons{pointer-events:auto}
+.right-buttons{max-width:44vw}
+#hint{max-width:calc(100% - 180px)}
+@media(max-width:430px) and (orientation:portrait){
+ .minimap{top:54px;right:7px;width:122px}
+ #miniMap{width:122px;height:122px}
+ .mapLegend{font-size:6px;padding:3px 4px}
+ #hint{max-width:calc(100% - 140px);font-size:9px}
+}
+@media(orientation:landscape) and (max-height:600px){
+ .minimap{top:7px!important;right:8px!important;width:88px!important}
+ #miniMap{width:88px!important;height:88px!important}
+ .mapLegend{display:none!important}
+ #mission{top:45px;left:12px}
+ #hint{top:80px;left:12px;max-width:45vw}
+ #controls{bottom:48px!important;height:110px!important}
+ .stick{width:100px!important;height:100px!important}
+ #knob,#steerKnob{width:46px;height:46px;left:25px;top:25px}
+ .right-buttons{max-width:38vw;gap:4px}
+ .right-buttons button{min-width:76px;min-height:31px;padding:6px 8px;font-size:8px}
+ .pedal{height:43px;min-width:64px}
+ .bottom-buttons{bottom:4px!important}
+}
+
+@media(orientation:landscape) and (max-height:600px){.minimap{pointer-events:auto!important}}
+
+.minimap{pointer-events:auto!important}
