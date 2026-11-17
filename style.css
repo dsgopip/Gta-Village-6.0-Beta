@@ -6,3 +6,25 @@
 /* V7 camera-look surface: dedicated, translucent touch area with clear affordance. */
 #cameraTouch{top:105px;bottom:178px;width:48vw;max-width:290px;background:linear-gradient(135deg,#9bb8c51a,#ffffff02);border:1px solid #ffffff20;border-right:0;border-radius:20px 0 0 20px;box-shadow:inset 12px 0 24px #07131b12}
 #cameraTouch:after{content:"ОБЗОР КАМЕРЫ";position:absolute;right:10px;top:50%;writing-mode:vertical-rl;transform:translateY(-50%);font-size:9px;letter-spacing:2px;color:#ffffff65;text-shadow:0 1px 4px #000}
+
+/* V8: full-screen camera look is handled globally; only actual controls capture touches. */
+#cameraTouch{display:none!important}
+#controls{z-index:6;bottom:76px;height:142px}
+.control-layer{padding:0 14px 0 16px;align-items:flex-end}
+#stick,#steerStick{width:126px;height:126px;background:rgba(9,22,32,.58);border:2px solid rgba(255,255,255,.72);box-shadow:0 4px 18px #0008}
+#knob,#steerKnob{width:54px;height:54px;left:34px;top:34px;background:linear-gradient(145deg,#f5f8f7ee,#9daeb5dd);border:2px solid #fff}
+.right-buttons{gap:7px;max-width:48vw}
+.right-buttons button{min-height:40px;padding:10px 12px;font-size:10px}
+.round{width:66px;height:46px}
+.action{min-width:122px}
+.driving{grid-template-columns:repeat(2,minmax(74px,1fr));gap:7px}
+.pedal{min-width:74px;height:58px}
+.bottom-buttons{z-index:8;left:50%;right:auto;transform:translateX(-50%);bottom:10px;white-space:nowrap}
+.minimap{position:absolute;z-index:7;top:57px;right:10px;width:160px;pointer-events:none;filter:drop-shadow(0 3px 8px #0008)}
+#miniMap{display:block;width:160px;height:160px;border-radius:12px;border:1px solid #ffffff8c;background:#172b2b}
+.mapLegend{display:grid;grid-template-columns:1fr 1fr;gap:3px 6px;padding:5px 7px;background:#07131be8;border-radius:0 0 9px 9px;font-size:8px;color:#e9f2ed}
+.mapLegend span:before{content:'●';margin-right:4px;color:#9dd7bc}
+.mapLegend span:nth-child(1):before{color:#65a9ff}.mapLegend span:nth-child(2):before{color:#65dfa8}.mapLegend span:nth-child(3):before{color:#ffd16a}.mapLegend span:nth-child(4):before{color:#ff9878}
+#hint{max-width:calc(100% - 190px);top:96px}
+@media(max-width:420px){.minimap{top:56px;right:7px;width:132px}#miniMap{width:132px;height:132px}.mapLegend{font-size:7px;gap:2px 4px;padding:4px}.topline{left:10px;right:10px}#mission{left:10px;top:50px}#hint{left:10px;top:88px;max-width:calc(100% - 150px)}#controls{bottom:70px}.stick{width:112px!important;height:112px!important}#knob,#steerKnob{width:48px;height:48px;left:30px;top:30px}.right-buttons button{min-width:100px;font-size:9px;padding:9px 9px}.action{min-width:104px}}
+@media(orientation:landscape) and (max-height:500px){.minimap{top:8px;right:8px;width:118px}#miniMap{width:118px;height:118px}.mapLegend{font-size:7px;padding:3px}#mission{top:47px}#hint{top:84px}#controls{bottom:54px;height:112px}.stick{width:104px!important;height:104px!important}.bottom-buttons{bottom:5px}}

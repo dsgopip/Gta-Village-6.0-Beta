@@ -86,8 +86,19 @@ let inside=false,insideFacility=null,previousOutside=new THREE.Vector3();
 const obstacles=[...houses.map(q=>({x:q[0],z:q[1],rx:4.5,rz:4})),{x:-47,z:-102,rx:7,rz:6},{x:47,z:-102,rx:7,rz:6},{x:-47,z:103,rx:9,rz:7},{x:47,z:103,rx:6.5,rz:5.5}];
 
 for(let i=0;i<65;i++){let x=(Math.random()-.5)*170,z=(Math.random()-.5)*225;if(Math.abs(x)>9)tree(x,z,.55+Math.random()*.55)}
-// Character
-const player=new THREE.Group();scene.add(player);box(player,0,1.4,0,.62,.82,.34,mats.shirt);const head=new THREE.Mesh(new THREE.SphereGeometry(.24,16,12),mats.skin);head.position.y=2.02;player.add(head);const legs=[box(player,-.17,.58,0,.22,.68,.23,mats.pants),box(player,.17,.58,0,.22,.68,.23,mats.pants)];box(player,-.4,1.42,0,.18,.65,.18,mats.shirt);box(player,.4,1.42,0,.18,.65,.18,mats.shirt);player.position.set(0,0,8);
+// V8 player: textured outfit, skin, hair, shoes and articulated limbs.
+const player=new THREE.Group();scene.add(player);
+const playerCloth=mats.fabric[0],playerPants=mats.fabric[5],playerSkin=mats.skins[1],playerHair=mats.hair[0];
+box(player,0,1.38,0,.64,.84,.36,playerCloth);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.245,20,16),playerSkin);head.position.y=2.02;head.castShadow=true;player.add(head);
+const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.25,18,12,0,Math.PI*2,0,Math.PI*.58),playerHair);hairCap.position.set(0,2.09,-.015);hairCap.castShadow=true;player.add(hairCap);
+const eyeMat=new THREE.MeshStandardMaterial({color:0x172027,roughness:.7});for(const ex of [-.085,.085]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.025,8,8),eyeMat);eye.position.set(ex,2.02,.226);player.add(eye)}
+const playerLegPivots=[],playerArmPivots=[];
+for(const side of [-1,1]){
+ const legPivot=new THREE.Group();legPivot.position.set(side*.17,.91,0);player.add(legPivot);box(legPivot,0,-.31,0,.235,.66,.24,playerPants);box(legPivot,0,-.64,.055,.25,.16,.36,mats.black);playerLegPivots.push(legPivot);
+ const armPivot=new THREE.Group();armPivot.position.set(side*.39,1.68,0);player.add(armPivot);box(armPivot,0,-.29,0,.19,.62,.2,playerCloth);const hand=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),playerSkin);hand.position.y=-.62;armPivot.add(hand);playerArmPivots.push(armPivot);
+}
+player.position.set(0,0,8);
 // Grey cat follower
 const cat=new THREE.Group();scene.add(cat);const body=new THREE.Mesh(new THREE.SphereGeometry(.36,18,14),mats.fur);body.scale.set(1.25,.7,.75);body.position.y=.43;cat.add(body);const ch=new THREE.Mesh(new THREE.SphereGeometry(.23,16,12),mats.fur);ch.position.set(0,.62,.38);cat.add(ch);for(const x of [-.14,.14]){const e=new THREE.Mesh(new THREE.ConeGeometry(.08,.2,8),mats.fur);e.position.set(x,.84,.4);cat.add(e)}for(const x of [-.2,.2])for(const z of [-.15,.15])cyl(cat,x,.19,z,.055,.32,mats.fur,8);cat.position.set(-2,0,10);
 // Car with body damage color changes
@@ -131,17 +142,26 @@ for(let i=0;i<28;i++){
  npcs.push({g,home:new THREE.Vector3(x,0,z),phase:Math.random()*6,legs,knock:0});
 }
 let move={x:0,y:0},steer=0,run=false,gas=false,reverse=false,inCar=false,first=false,speed=0,lateralSpeed=0,damage=0,time=8,mission=0,toastTimer=0,collisionCooldown=0;
+const playerVelocity=new THREE.Vector3();let walkPhase=0;
 const MAX_SPEED=200/3.6;
 function toast(s){$('toast').textContent=s;$('toast').style.opacity=1;toastTimer=2.1}
 function stick(el,knob,cb){let active=false,pid=null;const moveEv=e=>{const r=el.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,max=r.width*.34,d=Math.hypot(dx,dy),k=d>max?max/d:1;let a=dx*k,b=dy*k;knob.style.transform=`translate(${a}px,${b}px)`;cb(a/max,-b/max)};el.addEventListener('pointerdown',e=>{active=true;pid=e.pointerId;el.setPointerCapture(pid);moveEv(e)});el.addEventListener('pointermove',e=>{if(active&&e.pointerId===pid)moveEv(e)});const end=e=>{if(active&&e.pointerId===pid){active=false;knob.style.transform='';cb(0,0)}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)}
 stick($('stick'),$('knob'),(x,y)=>move={x,y});stick($('steerStick'),$('steerKnob'),x=>steer=x);
-// Independent touch-look: drag only inside the camera pad to rotate the view.
-let cameraYaw=0,cameraPitch=.22,cameraPointer=null,lastTouchX=0,lastTouchY=0;
-const cameraPad=$('cameraTouch');
-cameraPad.addEventListener('pointerdown',e=>{e.preventDefault();cameraPointer=e.pointerId;lastTouchX=e.clientX;lastTouchY=e.clientY;cameraPad.setPointerCapture(e.pointerId)});
-cameraPad.addEventListener('pointermove',e=>{if(cameraPointer!==e.pointerId)return;e.preventDefault();const dx=e.clientX-lastTouchX,dy=e.clientY-lastTouchY;lastTouchX=e.clientX;lastTouchY=e.clientY;cameraYaw-=dx*.008;cameraPitch=THREE.MathUtils.clamp(cameraPitch-dy*.006,-.18,.85)});
+// V8 full-screen camera look: drag from ANY free screen area. UI controls are excluded.
+let cameraYaw=0,cameraPitch=.20,cameraPointer=null,lastTouchX=0,lastTouchY=0;
+const cameraExcluded=target=>!!(target&&target.closest&&target.closest('button,.stick,.minimap,.control-layer,#controls,#bottomButtons'));
+document.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='mouse'&&e.button!==0)return;
+ if(cameraExcluded(e.target))return;
+ cameraPointer=e.pointerId;lastTouchX=e.clientX;lastTouchY=e.clientY;
+},{passive:true});
+document.addEventListener('pointermove',e=>{
+ if(cameraPointer!==e.pointerId)return;
+ const dx=e.clientX-lastTouchX,dy=e.clientY-lastTouchY;lastTouchX=e.clientX;lastTouchY=e.clientY;
+ cameraYaw-=dx*.0072;cameraPitch=THREE.MathUtils.clamp(cameraPitch-dy*.0062,-.42,1.05);
+},{passive:true});
 const endCamera=e=>{if(cameraPointer===e.pointerId)cameraPointer=null};
-cameraPad.addEventListener('pointerup',endCamera);cameraPad.addEventListener('pointercancel',endCamera);
+document.addEventListener('pointerup',endCamera);document.addEventListener('pointercancel',endCamera);
 
 function hold(id,set){$(id).addEventListener('pointerdown',e=>{e.preventDefault();set(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>$(id).addEventListener(ev,()=>set(false)))}
 hold('runBtn',v=>run=v);hold('gasBtn',v=>gas=v);hold('reverseBtn',v=>reverse=v);
@@ -158,23 +178,36 @@ $('actionBtn').onclick=()=>{
 };
 $('missionBtn').onclick=()=>{mission=(mission+1)%4;setMission()};function setMission(){const a=['Осмотрись в деревне','Найди полицейский участок','Посети медпункт','Доедь до школы'];$('mission').textContent='ЗАДАНИЕ: '+a[mission]}setMission();
 function dayNight(dt){time=(time+dt*.035)%24;const h=Math.floor(time),m=Math.floor((time-h)*60);$('clock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');const k=Math.max(0,Math.sin((time-6)/12*Math.PI));sun.intensity=.18+k*2;scene.background.set(0x101a2b).lerp(new THREE.Color(0x9fc3d2),k);scene.fog.color.copy(scene.background);interiorLight.intensity=inside?22:0}
-function update(dt){dayNight(dt);
+// V8 minimap: all key public buildings, player and vehicle are marked on a live village map.
+const mapCanvas=$('miniMap'),mapCtx=mapCanvas.getContext('2d');
+const mapPlaces=[{x:-47,z:-102,label:'П',color:'#65a9ff'},{x:47,z:-102,label:'М',color:'#65dfa8'},{x:-47,z:103,label:'Ш',color:'#ffd16a'},{x:47,z:103,label:'МГ',color:'#ff9878'}];
+function drawMiniMap(){
+ const c=mapCtx,w=mapCanvas.width,h=mapCanvas.height;c.clearRect(0,0,w,h);
+ c.fillStyle='rgba(8,19,25,.88)';c.fillRect(0,0,w,h);c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=2;c.strokeRect(2,2,w-4,h-4);
+ const sx=(x)=>w/2+x*.52,sz=(z)=>h/2+z*.43;
+ c.fillStyle='#526b55';c.fillRect(7,7,w-14,h-14);
+ c.strokeStyle='#9a9b86';c.lineWidth=7;c.beginPath();c.moveTo(sx(0),sz(-128));c.lineTo(sx(0),sz(128));c.moveTo(sx(-88),sz(-22));c.lineTo(sx(88),sz(-22));c.moveTo(sx(-88),sz(36));c.lineTo(sx(88),sz(36));c.moveTo(sx(-47),sz(-120));c.lineTo(sx(-47),sz(118));c.moveTo(sx(47),sz(-120));c.lineTo(sx(47),sz(118));c.stroke();
+ c.font='bold 9px Arial';c.textAlign='center';c.textBaseline='middle';
+ for(const p of mapPlaces){const x=sx(p.x),y=sz(p.z);c.fillStyle=p.color;c.beginPath();c.arc(x,y,6,0,Math.PI*2);c.fill();c.strokeStyle='#101820';c.lineWidth=1.5;c.stroke();c.fillStyle='#07131b';c.fillText(p.label,x,y+.5)}
+ const target=inCar?car.position:player.position;c.save();c.translate(sx(target.x),sz(target.z));c.rotate(-(inCar?car.rotation.y:player.rotation.y));c.fillStyle=inCar?'#fff':'#ffe84f';c.beginPath();c.moveTo(0,-7);c.lineTo(5,6);c.lineTo(0,3);c.lineTo(-5,6);c.closePath();c.fill();c.restore();
+ c.fillStyle='#fff';c.font='bold 9px Arial';c.textAlign='left';c.fillText('КАРТА',7,12);
+}
+function update(dt){dayNight(dt);drawMiniMap();
 for(const n of npcs){if(n.knock>0){n.knock-=dt;n.g.position.x+=(n.g.userData.vx||0)*dt;n.g.position.z+=(n.g.userData.vz||0)*dt;n.g.userData.vx=(n.g.userData.vx||0)*Math.pow(.08,dt);n.g.userData.vz=(n.g.userData.vz||0)*Math.pow(.08,dt);n.g.rotation.z=Math.sin((1.4-n.knock)*8)*.72;n.g.rotation.x=Math.sin((1.4-n.knock)*5)*.2}else{n.g.rotation.z=THREE.MathUtils.damp(n.g.rotation.z,0,5,dt);n.g.rotation.x=THREE.MathUtils.damp(n.g.rotation.x,0,5,dt);n.phase+=dt*.38;n.g.position.x=THREE.MathUtils.damp(n.g.position.x,n.home.x+Math.sin(n.phase)*2.4,2,dt);n.g.position.z=THREE.MathUtils.damp(n.g.position.z,n.home.z+Math.cos(n.phase*.7)*2.2,2,dt);n.g.rotation.y=Math.sin(n.phase)*.5}}
-if(!inCar){ // Direct analog movement: up is forward, down is backward; camera look is independent.
+if(!inCar){ // V8 responsive character controller: acceleration, braking, camera-relative steering and animated stride.
  const forward=new THREE.Vector3(Math.sin(cameraYaw),0,Math.cos(cameraYaw));
  const right=new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw));
- const dir=right.multiplyScalar(move.x).add(forward.multiplyScalar(move.y));
- if(dir.lengthSq()>.02){
-   dir.normalize();
-   const targetYaw=Math.atan2(dir.x,dir.z);
-   const delta=Math.atan2(Math.sin(targetYaw-player.rotation.y),Math.cos(targetYaw-player.rotation.y));
-   player.rotation.y+=delta*Math.min(1,dt*12);
-   const oldPos=player.position.clone();
-   player.position.addScaledVector(dir,(run?7.8:4.6)*dt);
-   if(!inside&&obstacles.some(o=>Math.abs(player.position.x-o.x)<o.rx&&Math.abs(player.position.z-o.z)<o.rz))player.position.copy(oldPos);
- }
+ const inputDir=right.multiplyScalar(move.x).add(forward.multiplyScalar(move.y));
+ const hasInput=inputDir.lengthSq()>.018;
+ if(hasInput){inputDir.normalize();const targetYaw=Math.atan2(inputDir.x,inputDir.z);const delta=Math.atan2(Math.sin(targetYaw-player.rotation.y),Math.cos(targetYaw-player.rotation.y));player.rotation.y+=delta*Math.min(1,dt*17)}
+ const maxWalk=run?7.2:4.35;const targetVelocity=hasInput?inputDir.multiplyScalar(maxWalk):new THREE.Vector3();
+ playerVelocity.lerp(targetVelocity,Math.min(1,dt*(hasInput?13:10)));
+ const oldPos=player.position.clone();player.position.addScaledVector(playerVelocity,dt);
+ if(!inside&&obstacles.some(o=>Math.abs(player.position.x-o.x)<o.rx&&Math.abs(player.position.z-o.z)<o.rz)){player.position.copy(oldPos);playerVelocity.multiplyScalar(-.08)}
  player.position.x=THREE.MathUtils.clamp(player.position.x,-95,95);player.position.z=THREE.MathUtils.clamp(player.position.z,-140,140);
-}else{
+ const stride=Math.min(1,playerVelocity.length()/4.5);walkPhase+=dt*(run?12:8)*stride;
+ for(let i=0;i<2;i++){const swing=Math.sin(walkPhase+i*Math.PI)*.48*stride;playerLegPivots[i].rotation.x=swing;playerArmPivots[i].rotation.x=-swing*.72}
+}else{playerVelocity.set(0,0,0);playerLegPivots.forEach(p=>p.rotation.x=0);playerArmPivots.forEach(p=>p.rotation.x=0);
  // Arcade vehicle dynamics: engine force, drag, lateral grip and speed-sensitive steering.
  const oldPos=car.position.clone(),oldSpeed=Math.abs(speed);
  if(gas&&!reverse)speed+=17.5*dt;
@@ -218,9 +251,9 @@ else if(first&&inCar){
  desired=target.clone().add(new THREE.Vector3(Math.sin(cameraYaw)*dist*Math.cos(cameraPitch),height+Math.sin(cameraPitch)*dist,-Math.cos(cameraYaw)*dist*Math.cos(cameraPitch)));
  look=camTarget.clone().add(new THREE.Vector3(Math.sin(cameraYaw)*2,0,Math.cos(cameraYaw)*2));
 }
-camera.position.lerp(desired,Math.min(1,dt*(first&&inCar?14:7.5)));camera.lookAt(look);
+camera.position.lerp(desired,Math.min(1,dt*(first&&inCar?18:10.5)));camera.lookAt(look);
 if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)$('toast').style.opacity=0}
 }
 let last=performance.now();function frame(now){const dt=Math.min((now-last)/1000,.035);last=now;update(dt);renderer.render(scene,camera);requestAnimationFrame(frame)}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5))});
-setTimeout(()=>{loading.style.display='none';toast('Версия 6.0: новое управление и камера!')},1200);requestAnimationFrame(frame);
+setTimeout(()=>{loading.style.display='none';toast('V8: обзор по всему экрану и новое управление!')},1200);requestAnimationFrame(frame);
