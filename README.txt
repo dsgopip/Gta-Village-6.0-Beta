@@ -1,24 +1,11 @@
-VILLAGE LIFE 3D — VERSION 6.0
+VILLAGE LIFE 3D — VERSION 7.0
+Mobile browser game. Upload the contents of this folder to the root of a GitHub Pages repository.
 
-UPDATE:
-- Camera has its own touch-look area on the right side of the screen. Drag inside it to rotate the view; it does not move the character or steer the car.
-- Walking joystick is corrected: push up = move forward, down = move backward, left/right = strafe. Direction is relative to the camera.
-- Vehicle steering joystick and separate forward/reverse pedals remain separate.
-- All PNG textures are embedded into textures-inline.js as data URLs. The game no longer requests a /textures folder, so GitHub's folder-upload problem is avoided.
+V7 changes:
+- Reworked camera feel and a dedicated touch-look surface; camera button switches third-person and first-person.
+- First-person driving now places the camera inside the cockpit, with dashboard, gauges, steering wheel, seats and interior trim.
+- Car exterior has a detailed metallic procedural paint material, grille, lights, chrome trim, mirrors, wheel details and door seams.
+- Public facilities are visually distinct from residential houses: police station, clinic, school and shop have dedicated facades, signage and architectural details.
+- Vehicle materials are generated locally in the game; no separate textures folder is needed.
 
-GITHUB PAGES UPDATE:
-1. Extract this ZIP.
-2. Upload all files inside VILLAGE_LIFE_3D_V3 to the ROOT of your existing repository.
-3. Replace old files when GitHub asks. Upload textures-inline.js too.
-4. You do NOT need to upload the textures folder. The PNGs are embedded in textures-inline.js.
-5. Commit changes, then open the GitHub Pages site and refresh it.
-
-CONTROLS:
-Walking: joystick up/down = forward/back, left/right = strafe; RUN for faster movement.
-Camera: drag the separate outlined touch area on the right side.
-Car: left joystick = steering; FORWARD and BACK are separate pedals.
-CAMERA button switches first-person/third-person view.
-
-NOTES:
-- Three.js is loaded from jsDelivr CDN, so an internet connection is required.
-- This remains a browser-based low-poly prototype, not a full commercial driving simulator.
+Run via GitHub Pages over HTTPS. Three.js is loaded from jsDelivr CDN, so an internet connection is required.

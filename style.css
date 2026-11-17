@@ -2,3 +2,7 @@
 /* Version 6: a separate touch-look pad, independent from movement controls. */
 #cameraTouch{position:absolute;z-index:2;right:0;top:118px;bottom:190px;width:43vw;max-width:230px;pointer-events:auto;touch-action:none;background:linear-gradient(135deg,#ffffff08,#ffffff00);border:1px solid #ffffff12;border-right:0;border-radius:18px 0 0 18px}
 #controls{z-index:4}.bottom-buttons{z-index:5}.topline,#mission,#hint,#speedPanel,#damageWrap,#toast{z-index:5}
+
+/* V7 camera-look surface: dedicated, translucent touch area with clear affordance. */
+#cameraTouch{top:105px;bottom:178px;width:48vw;max-width:290px;background:linear-gradient(135deg,#9bb8c51a,#ffffff02);border:1px solid #ffffff20;border-right:0;border-radius:20px 0 0 20px;box-shadow:inset 12px 0 24px #07131b12}
+#cameraTouch:after{content:"ОБЗОР КАМЕРЫ";position:absolute;right:10px;top:50%;writing-mode:vertical-rl;transform:translateY(-50%);font-size:9px;letter-spacing:2px;color:#ffffff65;text-shadow:0 1px 4px #000}
