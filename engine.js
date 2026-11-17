@@ -36,7 +36,7 @@ export class V9Engine {
     document.addEventListener('pointermove',e=>{
       const c=this.cameraState;if(c.pointer!==e.pointerId)return;
       const dx=e.clientX-c.lastX,dy=e.clientY-c.lastY;c.lastX=e.clientX;c.lastY=e.clientY;
-      c.yaw-=dx*.0065;c.pitch=THREE.MathUtils.clamp(c.pitch-dy*.0055,-.58,1.08);
+      c.yaw+=dx*.0065;c.pitch=THREE.MathUtils.clamp(c.pitch+dy*.0055,-.58,1.08);
     });
     const end=e=>{if(this.cameraState.pointer===e.pointerId)this.cameraState.pointer=null};
     document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
@@ -60,7 +60,7 @@ export class V9Engine {
   }
   updateCharacter(dt){
     const c=this.cameraState,forward=new THREE.Vector3(Math.sin(c.yaw),0,Math.cos(c.yaw)),right=new THREE.Vector3(Math.cos(c.yaw),0,-Math.sin(c.yaw));
-    const desired=right.multiplyScalar(this.input.moveX).add(forward.multiplyScalar(this.input.moveY));const active=desired.lengthSq()>.025;
+    const desired=right.multiplyScalar(-this.input.moveX).add(forward.multiplyScalar(this.input.moveY));const active=desired.lengthSq()>.025;
     if(active){desired.normalize();const yaw=Math.atan2(desired.x,desired.z);this.player.rotation.y+=THREE.MathUtils.euclideanModulo(yaw-this.player.rotation.y+Math.PI,Math.PI*2)-Math.PI;}
     const max=this.input.run?6.6:3.9,target=active?desired.multiplyScalar(max):new THREE.Vector3();
     // Acceleration and braking are separate, so releasing the stick no longer causes a sudden stop.
