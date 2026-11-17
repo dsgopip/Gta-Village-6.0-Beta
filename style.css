@@ -28,3 +28,12 @@
 #hint{max-width:calc(100% - 190px);top:96px}
 @media(max-width:420px){.minimap{top:56px;right:7px;width:132px}#miniMap{width:132px;height:132px}.mapLegend{font-size:7px;gap:2px 4px;padding:4px}.topline{left:10px;right:10px}#mission{left:10px;top:50px}#hint{left:10px;top:88px;max-width:calc(100% - 150px)}#controls{bottom:70px}.stick{width:112px!important;height:112px!important}#knob,#steerKnob{width:48px;height:48px;left:30px;top:30px}.right-buttons button{min-width:100px;font-size:9px;padding:9px 9px}.action{min-width:104px}}
 @media(orientation:landscape) and (max-height:500px){.minimap{top:8px;right:8px;width:118px}#miniMap{width:118px;height:118px}.mapLegend{font-size:7px;padding:3px}#mission{top:47px}#hint{top:84px}#controls{bottom:54px;height:112px}.stick{width:104px!important;height:104px!important}.bottom-buttons{bottom:5px}}
+
+/* V9 HUD: camera look is global; only actual buttons and joystick surfaces capture touch. */
+#cameraTouch{display:none!important}
+.minimap{width:184px;top:58px;right:10px;pointer-events:none}
+#miniMap{width:184px;height:184px}
+.mapLegend{font-size:8px;line-height:1.35}
+#controls{bottom:74px;height:142px}
+button,.stick{touch-action:none}
+@media(max-width:420px){.minimap{width:142px;top:55px;right:7px}#miniMap{width:142px;height:142px}.mapLegend{font-size:7px;padding:4px 5px}#hint{max-width:calc(100% - 160px)}}
